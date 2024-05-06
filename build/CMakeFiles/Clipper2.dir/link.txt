@@ -1,2 +1,0 @@
-/Library/Developer/CommandLineTools/usr/bin/ar qc libClipper2.a CMakeFiles/Clipper2.dir/install/clipper_2/CPP/Clipper2Lib/src/clipper.engine.cpp.o CMakeFiles/Clipper2.dir/install/clipper_2/CPP/Clipper2Lib/src/clipper.offset.cpp.o
-/Library/Developer/CommandLineTools/usr/bin/ranlib libClipper2.a

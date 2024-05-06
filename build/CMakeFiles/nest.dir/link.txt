@@ -1,1 +1,0 @@
-/Library/Developer/CommandLineTools/usr/bin/c++ -O3 -DNDEBUG -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX13.1.sdk -mmacosx-version-min=12.7 -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/nest.dir/src/main.cpp.o -o nest   -L/Users/petras/brg/2_code/nest/build  -Wl,-rpath,/Users/petras/brg/2_code/nest/build -lClipper2 -lsqlite3
