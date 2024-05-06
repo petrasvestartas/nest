@@ -1,0 +1,3 @@
+/Users/petras/brg/2_code/nest/build/CMakeFiles/nest.dir
+/Users/petras/brg/2_code/nest/build/CMakeFiles/edit_cache.dir
+/Users/petras/brg/2_code/nest/build/CMakeFiles/rebuild_cache.dir

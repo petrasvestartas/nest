@@ -2,7 +2,7 @@
 # PROJECT SETUP
 ########################################################################
 cmake_minimum_required(VERSION 3.24.2)
-project(wood LANGUAGES C CXX)
+project(nest LANGUAGES C CXX)
 
 # Compiler configuration
 message(STATUS "C++ compiler: ${CMAKE_CXX_COMPILER}")
@@ -54,11 +54,17 @@ endif()
 ########################################################################
 set(BUILD_MY_PROJECTS "" CACHE STRING "Build Project")
 if(BUILD_MY_PROJECTS)
-  add_executable(${PROJECT_NAME} main.cpp "${CMAKE_SOURCE_DIR}/src/main.cpp")
-  target_precompile_headers(${PROJECT_NAME} PRIVATE stdafx.h)
-  set(CMAKE_PCH_INSTANTIATE_TEMPLATES ON)
-  list(APPEND petras_include_paths "${CMAKE_SOURCE_DIR}/src/nest/" "${CMAKE_SOURCE_DIR}/src/sqlite/")
+
+  add_executable(${PROJECT_NAME} "${CMAKE_SOURCE_DIR}/src/main.cpp")
+  list(APPEND headers "${CMAKE_SOURCE_DIR}/src/nest/" "${CMAKE_SOURCE_DIR}/src/sqlite/" "${CMAKE_BINARY_DIR}/install/clipper_2/CPP/Clipper2Lib/include")
+  target_include_directories(${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${headers}>") #header for the library
+
   
+
+  target_precompile_headers(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/src/stdafx.h)
+  set(CMAKE_PCH_INSTANTIATE_TEMPLATES ON)
+
+
   if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     target_link_libraries(${PROJECT_NAME} PUBLIC Clipper2 sqlite3)
   elseif(APPLE)

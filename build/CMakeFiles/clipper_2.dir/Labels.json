@@ -1,0 +1,43 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "/Users/petras/brg/2_code/nest/build/CMakeFiles/clipper_2"
+		},
+		{
+			"file" : "/Users/petras/brg/2_code/nest/build/CMakeFiles/clipper_2.rule"
+		},
+		{
+			"file" : "/Users/petras/brg/2_code/nest/build/CMakeFiles/clipper_2-complete.rule"
+		},
+		{
+			"file" : "/Users/petras/brg/2_code/nest/build/clipper_2-prefix/src/clipper_2-stamp/clipper_2-build.rule"
+		},
+		{
+			"file" : "/Users/petras/brg/2_code/nest/build/clipper_2-prefix/src/clipper_2-stamp/clipper_2-configure.rule"
+		},
+		{
+			"file" : "/Users/petras/brg/2_code/nest/build/clipper_2-prefix/src/clipper_2-stamp/clipper_2-download.rule"
+		},
+		{
+			"file" : "/Users/petras/brg/2_code/nest/build/clipper_2-prefix/src/clipper_2-stamp/clipper_2-install.rule"
+		},
+		{
+			"file" : "/Users/petras/brg/2_code/nest/build/clipper_2-prefix/src/clipper_2-stamp/clipper_2-mkdir.rule"
+		},
+		{
+			"file" : "/Users/petras/brg/2_code/nest/build/clipper_2-prefix/src/clipper_2-stamp/clipper_2-patch.rule"
+		},
+		{
+			"file" : "/Users/petras/brg/2_code/nest/build/clipper_2-prefix/src/clipper_2-stamp/clipper_2-update.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"clipper_2"
+		],
+		"name" : "clipper_2"
+	}
+}
