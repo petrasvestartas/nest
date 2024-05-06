@@ -56,6 +56,7 @@ set(BUILD_MY_PROJECTS "" CACHE STRING "Build Project")
 if(BUILD_MY_PROJECTS)
 
   add_executable(${PROJECT_NAME} "${CMAKE_SOURCE_DIR}/src/main.cpp")
+  
   list(APPEND headers "${CMAKE_SOURCE_DIR}/src/nest/" "${CMAKE_SOURCE_DIR}/src/sqlite/" "${CMAKE_BINARY_DIR}/install/clipper_2/CPP/Clipper2Lib/include")
   target_include_directories(${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${headers}>") #header for the library
 
