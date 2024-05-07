@@ -1,7 +1,6 @@
 #pragma once
 #include "../stdafx.h"
 #include "clipper2/clipper.minkowski.h"
-#include "glm/fwd.hpp"
 
 namespace nest
 {
