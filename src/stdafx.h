@@ -27,5 +27,6 @@
 
 // clipper2
 #include <clipper2/clipper.h>
+#include "clipper2/clipper.minkowski.h"
 
 

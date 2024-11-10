@@ -1,19 +1,16 @@
 #pragma once
 #include "../stdafx.h"
-#include "clipper2/clipper.minkowski.h"
-#include "conversion.h"
-#include "shapes.h"
-#include <execution>
-#include "database_writer.h"
 // minkowski + holes
 // what to do with multiple minkowski sum outlines or I just need to take one item?
 // multiple minkovskies
+
 
 namespace nest
 {
     static std::vector<int> placed_id;
     static std::vector<std::array<float, 3>> placed_rotationtranslation;
     static std::vector<bool> placed_pattern_or_path; // there can be multiple sheets
+    static float scale = 10000;
 
     inline void nfp(Clipper2Lib::Paths64 &pattern, Clipper2Lib::Paths64 &result, int temp, std::vector<Clipper2Lib::Paths64>& placed_paths) 
     {

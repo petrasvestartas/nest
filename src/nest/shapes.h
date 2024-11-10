@@ -1,6 +1,5 @@
 #pragma once
 #include "../stdafx.h"
-#include "clipper2/clipper.minkowski.h"
 
 namespace nest
 {
@@ -21,6 +20,16 @@ namespace nest
         Clipper2Lib::Paths64 polylines =
             {
                 {Clipper2Lib::Point64(0, 0), Clipper2Lib::Point64(1000, 0), Clipper2Lib::Point64(1000, 1000), Clipper2Lib::Point64(0, 1000)}, //, Clipper2Lib::Point64(0, 0)
+
+            };
+        return polylines;
+    }
+
+    inline Clipper2Lib::Paths64 pattern_2()
+    {
+        Clipper2Lib::Paths64 polylines =
+            {
+                {Clipper2Lib::Point64(0, 0), Clipper2Lib::Point64(1000, 0), Clipper2Lib::Point64(0, 1500)}, //, Clipper2Lib::Point64(0, 0)
 
             };
         return polylines;
