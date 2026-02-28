@@ -1,107 +1,137 @@
-########################################################################
-# PROJECT SETUP
-########################################################################
-cmake_minimum_required(VERSION 3.24.2)
-project(nest LANGUAGES C CXX)
+cmake_minimum_required(VERSION 3.20)
+project(opennest_cpp LANGUAGES CXX)
 
-# Set the C++ standard
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Compiler configuration
-message(STATUS "C++ compiler: ${CMAKE_CXX_COMPILER}")
-message(STATUS "C++ compiler ID: ${CMAKE_CXX_COMPILER_ID}")
-message(STATUS "C++ compiler version: ${CMAKE_CXX_COMPILER_VERSION}")
-message(STATUS "CMAKE_CXX_STANDARD: ${CMAKE_CXX_STANDARD}")
+# --- External dependencies ---
 
-# Compiler specific messages
-if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR APPLE)
-  message(STATUS "The C++ compiler is GCC.")
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-  message(STATUS "The C++ compiler is Microsoft Visual C++.")
+# Clipper2 (vendored in-tree)
+set(CLIPPER2_SOURCES
+    src/clipper2/clipper.engine.cpp
+    src/clipper2/clipper.offset.cpp
+    src/clipper2/clipper.rectclip.cpp
+)
+add_library(Clipper2 STATIC ${CLIPPER2_SOURCES})
+target_include_directories(Clipper2 PUBLIC ${CMAKE_SOURCE_DIR}/src)
+
+# --- Source files ---
+set(NEST_SOURCES
+    src/Point.h
+    src/NestConfig.h
+    src/HelperTypes.h
+    src/NFP.h
+    src/GeometryUtil.h
+    src/GeometryUtil.cpp
+    src/Simplify.h
+    src/D3.h
+    src/ClipperUtil.h
+    src/MinkowskiConvolution.h
+    src/NfpWorker.h
+    src/NfpWorker.cpp
+    src/Random.h
+    src/GeneticAlgorithm.h
+    src/GeneticAlgorithm.cpp
+    src/NestingEngine.h
+    src/NestingEngine.cpp
+    src/NestingContext.h
+    src/NestingContext.cpp
+)
+
+# --- Nest static library ---
+add_library(nest_lib STATIC ${NEST_SOURCES})
+target_include_directories(nest_lib
+    PUBLIC
+        ${CMAKE_SOURCE_DIR}/src
+)
+target_link_libraries(nest_lib PUBLIC Clipper2)
+
+# MSVC needs _USE_MATH_DEFINES for M_PI
+if(MSVC)
+    target_compile_definitions(nest_lib PUBLIC _USE_MATH_DEFINES)
+    target_compile_options(nest_lib PRIVATE /W3 /wd4244 /wd4267 /wd4305)
 else()
-  message(STATUS "The C++ compiler is not GCC or Microsoft Visual C++.")
+    target_compile_options(nest_lib PRIVATE -Wall -Wextra -Wno-unused-parameter)
 endif()
 
-set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CMAKE_COMMAND} -E time")
-set(CMAKE_BUILD_TYPE_INIT "Release")
+# --- Solver modules static library ---
+set(SOLVER_SOURCES
+    src/SolverConfig.h
+    src/Compaction.h
+    src/Compaction.cpp
+    src/ContinuousRotation.h
+    src/ContinuousRotation.cpp
+    src/JostleHeuristic.h
+    src/JostleHeuristic.cpp
+    src/PairPreMatching.h
+    src/PairPreMatching.cpp
+    src/ExhaustiveSolver.h
+    src/ExhaustiveSolver.cpp
+    src/OverlapResolution.h
+    src/OverlapResolution.cpp
+    src/SolverOrchestrator.h
+    src/SolverOrchestrator.cpp
+)
 
-# Policy configurations
-cmake_policy(SET CMP0097 NEW)
-cmake_policy(SET CMP0135 NEW)
+add_library(solvers_lib STATIC ${SOLVER_SOURCES})
+target_include_directories(solvers_lib PUBLIC ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(solvers_lib PUBLIC nest_lib)
 
-########################################################################
-# EXTERNAL PROJECTS
-########################################################################
-include(ExternalProject)
-set(GET_LIBS "" CACHE STRING "Set option to download dependencies")
-if(GET_LIBS)
-  ExternalProject_Add(clipper_2
-    GIT_REPOSITORY https://github.com/AngusJohnson/Clipper2.git
-    GIT_TAG main
-    CMAKE_ARGS
-      -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-      -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
-    SOURCE_DIR "${CMAKE_BINARY_DIR}/install/clipper_2"
-    CONFIGURE_COMMAND ""
-    BUILD_COMMAND ""
-    INSTALL_COMMAND ""
-  )
+if(MSVC)
+    target_compile_options(solvers_lib PRIVATE /W3 /wd4244 /wd4267 /wd4305)
+else()
+    target_compile_options(solvers_lib PRIVATE -Wall -Wextra -Wno-unused-parameter)
 endif()
 
-########################################################################
-# BUILD CONFIGURATIONS
-########################################################################
-set(BUILD_MY_PROJECTS "" CACHE STRING "Build Project")
-if(BUILD_MY_PROJECTS)
+# --- Example applications ---
 
-  add_executable(${PROJECT_NAME} "${CMAKE_SOURCE_DIR}/src/main.cpp")
-  
-  list(APPEND headers "${CMAKE_SOURCE_DIR}/src/nest/" "${CMAKE_SOURCE_DIR}/src/sqlite/" "${CMAKE_BINARY_DIR}/install/clipper_2/CPP/Clipper2Lib/include")
-  target_include_directories(${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${headers}>") #header for the library
+add_executable(opennest_app examples/main.cpp)
+target_link_libraries(opennest_app PRIVATE nest_lib)
+target_include_directories(opennest_app PRIVATE ${CMAKE_SOURCE_DIR}/src)
 
-  
+add_executable(advanced_example examples/advanced_example.cpp)
+target_link_libraries(advanced_example PRIVATE nest_lib)
+target_include_directories(advanced_example PRIVATE ${CMAKE_SOURCE_DIR}/src)
 
-  target_precompile_headers(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/src/stdafx.h)
-  set(CMAKE_PCH_INSTANTIATE_TEMPLATES ON)
+add_executable(curvy_example examples/curvy_example.cpp)
+target_link_libraries(curvy_example PRIVATE nest_lib)
+target_include_directories(curvy_example PRIVATE ${CMAKE_SOURCE_DIR}/src)
 
+add_executable(solvers_app examples/main_solvers.cpp)
+target_link_libraries(solvers_app PRIVATE solvers_lib)
+target_include_directories(solvers_app PRIVATE ${CMAKE_SOURCE_DIR}/src)
 
-  if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    target_link_libraries(${PROJECT_NAME} PUBLIC Clipper2 sqlite3)
-  elseif(APPLE)
-    target_link_directories(${PROJECT_NAME} PUBLIC "${CMAKE_BINARY_DIR}/")
-    target_link_libraries(${PROJECT_NAME} PUBLIC Clipper2 sqlite3)
-  else()
-    target_link_directories(${PROJECT_NAME} PUBLIC "${CMAKE_BINARY_DIR}/Release/")
-    target_link_libraries(${PROJECT_NAME} PUBLIC Clipper2 sqlite3)
-  endif()
-endif()
+# --- Verification tests ---
 
-########################################################################
-# LIBRARY COMPILATION
-########################################################################
-set(COMPILE_LIBS "" CACHE STRING "Set option to compile dependencies")
-if(COMPILE_LIBS)
-  set(CLIPPER2_INC
-    "${CMAKE_BINARY_DIR}/install/clipper_2/CPP/Clipper2Lib/include/clipper2/clipper.core.h"
-    "${CMAKE_BINARY_DIR}/install/clipper_2/CPP/Clipper2Lib/include/clipper2/clipper.engine.h"
-    "${CMAKE_BINARY_DIR}/install/clipper_2/CPP/Clipper2Lib/include/clipper2/clipper.h"
-    "${CMAKE_BINARY_DIR}/install/clipper_2/CPP/Clipper2Lib/include/clipper2/clipper.minkowski.h"
-    "${CMAKE_BINARY_DIR}/install/clipper_2/CPP/Clipper2Lib/include/clipper2/clipper.offset.h"
-  )
-  set(CLIPPER2_SRC
-    "${CMAKE_BINARY_DIR}/install/clipper_2/CPP/Clipper2Lib/src/clipper.engine.cpp"
-    "${CMAKE_BINARY_DIR}/install/clipper_2/CPP/Clipper2Lib/src/clipper.offset.cpp"
-  )
-  add_library(Clipper2 STATIC ${CLIPPER2_INC} ${CLIPPER2_SRC})
-  target_include_directories(Clipper2 PUBLIC "${CMAKE_BINARY_DIR}/install/clipper_2/CPP/Clipper2Lib/include/")
-  
-  add_library(sqlite3 STATIC "${CMAKE_SOURCE_DIR}/src/sqlite/sqlite3.c")
-  target_include_directories(sqlite3 PUBLIC "${CMAKE_SOURCE_DIR}/src/sqlite/")
-endif()
+add_executable(verify_layer01 tests/verify_layer01.cpp)
+target_link_libraries(verify_layer01 PRIVATE nest_lib)
+target_include_directories(verify_layer01 PRIVATE ${CMAKE_SOURCE_DIR}/src)
 
+add_executable(verify_layer2 tests/verify_layer2.cpp)
+target_link_libraries(verify_layer2 PRIVATE nest_lib)
+target_include_directories(verify_layer2 PRIVATE ${CMAKE_SOURCE_DIR}/src)
+
+add_executable(verify_layer3 tests/verify_layer3.cpp)
+target_link_libraries(verify_layer3 PRIVATE nest_lib)
+target_include_directories(verify_layer3 PRIVATE ${CMAKE_SOURCE_DIR}/src)
+
+add_executable(verify_layer4 tests/verify_layer4.cpp)
+target_link_libraries(verify_layer4 PRIVATE nest_lib)
+target_include_directories(verify_layer4 PRIVATE ${CMAKE_SOURCE_DIR}/src)
+
+add_executable(verify_layer5 tests/verify_layer5.cpp)
+target_link_libraries(verify_layer5 PRIVATE nest_lib)
+target_include_directories(verify_layer5 PRIVATE ${CMAKE_SOURCE_DIR}/src)
+
+add_executable(verify_layer6 tests/verify_layer6.cpp)
+target_link_libraries(verify_layer6 PRIVATE nest_lib)
+target_include_directories(verify_layer6 PRIVATE ${CMAKE_SOURCE_DIR}/src)
+
+add_executable(verify_nfp_groundtruth tests/verify_nfp_groundtruth.cpp)
+target_link_libraries(verify_nfp_groundtruth PRIVATE nest_lib)
+target_include_directories(verify_nfp_groundtruth PRIVATE ${CMAKE_SOURCE_DIR}/src)
+
+# Solver verification tests
+add_executable(verify_solvers tests/verify_solvers.cpp)
+target_link_libraries(verify_solvers PRIVATE solvers_lib)
+target_include_directories(verify_solvers PRIVATE ${CMAKE_SOURCE_DIR}/src)
