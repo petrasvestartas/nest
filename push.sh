@@ -1,10 +1,7 @@
 #!/bin/bash
-# push.sh — push nest repo to GitHub, then update it as a submodule
-# in compas_nest, nest_pinvoke, and OpenNest.
-#
 # Usage:
-#   ./push.sh                          # uses default commit message
-#   ./push.sh "my commit message"      # custom commit message
+#   bash push.sh                        # default commit message
+#   bash push.sh "my commit message"    # custom message
 
 set -e
 
@@ -15,55 +12,47 @@ OPENNEST_DIR="C:/pc/3_code/opennest/OpenNest"
 
 NEST_REMOTE="https://github.com/petrasvestartas/nest.git"
 SUBMODULE_PATH="external/nest"
-
 COMMIT_MSG="${1:-Update nest solver}"
 
-# ── 1. Push the nest repo ─────────────────────────────────────────────────────
-echo "==> [nest] Staging and pushing..."
+# ── 1. Push nest ──────────────────────────────────────────────────────────────
+echo "==> [nest] pushing..."
 cd "$NEST_DIR"
-
 git add -A
-
-if git diff --cached --quiet; then
-  echo "    Nothing to commit in nest — skipping commit."
-else
+if ! git diff --cached --quiet; then
   git commit -m "$COMMIT_MSG"
 fi
-
 git push
-
-NEST_COMMIT=$(git rev-parse HEAD)
+NEST_COMMIT=$(git rev-parse --short HEAD)
 echo "    HEAD: $NEST_COMMIT"
 
-# ── 2. Helper: add or update submodule in a parent repo ──────────────────────
+# ── 2. Update submodule in a parent repo ──────────────────────────────────────
 update_submodule() {
   local REPO_DIR="$1"
   echo ""
-  echo "==> [$REPO_DIR] Updating submodule..."
+  echo "==> [$REPO_DIR] updating submodule..."
   cd "$REPO_DIR"
 
-  if [ -f ".gitmodules" ] && grep -q "$SUBMODULE_PATH" .gitmodules 2>/dev/null; then
-    # Already registered — init if needed, then pull latest remote commit
-    git submodule update --init --remote "$SUBMODULE_PATH"
-    git add "$SUBMODULE_PATH"
+  if [ -d "$SUBMODULE_PATH" ]; then
+    # Already cloned — update pointer to latest remote commit
+    git submodule update --remote "$SUBMODULE_PATH"
   else
-    # First time — register and initialise
-    git submodule add "$NEST_REMOTE" "$SUBMODULE_PATH"
-    git add "$SUBMODULE_PATH" .gitmodules
+    # Not cloned yet — add (handles both fresh and stale .gitmodules entries)
+    git submodule add --force "$NEST_REMOTE" "$SUBMODULE_PATH"
   fi
 
-  if git diff --cached --quiet; then
-    echo "    Submodule already up to date."
-  else
-    git commit -m "Update nest submodule to ${NEST_COMMIT:0:7}"
+  git add "$SUBMODULE_PATH" .gitmodules
+  if ! git diff --cached --quiet; then
+    git commit -m "Update nest submodule to $NEST_COMMIT"
     git push
+  else
+    echo "    Already up to date."
   fi
 }
 
-# ── 3. Update each parent repo ───────────────────────────────────────────────
+# ── 3. Update each parent repo ────────────────────────────────────────────────
 update_submodule "$COMPAS_NEST_DIR"
 update_submodule "$NEST_PINVOKE_DIR"
 update_submodule "$OPENNEST_DIR"
 
 echo ""
-echo "All done."
+echo "Done."
