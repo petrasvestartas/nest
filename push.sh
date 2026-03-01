@@ -43,7 +43,8 @@ update_submodule() {
   cd "$REPO_DIR"
 
   if [ -f ".gitmodules" ] && grep -q "$SUBMODULE_PATH" .gitmodules 2>/dev/null; then
-    # Already registered — pull latest remote commit
+    # Already registered — init if needed, then pull latest remote commit
+    git submodule init "$SUBMODULE_PATH"
     git submodule update --remote --merge "$SUBMODULE_PATH"
     git add "$SUBMODULE_PATH"
   else
