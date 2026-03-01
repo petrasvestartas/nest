@@ -135,3 +135,12 @@ target_include_directories(verify_nfp_groundtruth PRIVATE ${CMAKE_SOURCE_DIR}/sr
 add_executable(verify_solvers tests/verify_solvers.cpp)
 target_link_libraries(verify_solvers PRIVATE solvers_lib)
 target_include_directories(verify_solvers PRIVATE ${CMAKE_SOURCE_DIR}/src)
+
+# --- PInvoke shared DLL ---
+add_library(opennest_solver SHARED src/nest_api.h src/nest_api.cpp)
+target_link_libraries(opennest_solver PRIVATE nest_lib)
+target_compile_definitions(opennest_solver PRIVATE OPENNEST_API_EXPORTS)
+if(MSVC)
+    target_compile_definitions(opennest_solver PRIVATE _USE_MATH_DEFINES)
+    target_compile_options(opennest_solver PRIVATE /W3 /wd4244 /wd4267 /wd4305)
+endif()
